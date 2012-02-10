@@ -1,7 +1,7 @@
 (function(define) {
     define(function(require, exports, module) {
 
-var clang = require('ceylon/language/0.1/ceylon.language');
+var clang = require('./ceylon.language');
 
 //receives ArraySequence, returns element
 function min(seq) {
@@ -77,9 +77,6 @@ function entries(seq) {
 
 //These are operators for handling nulls
 function $nullsafe() { return null; }
-function exists(value) {
-    return value === clang.getNull() || value === undefined ? clang.getFalse() : clang.getTrue();
-}
 function nonempty(value) {
     return value === null || value === undefined ? clang.getFalse() : clang.Boolean(value.getEmpty() === clang.getFalse());
 }
@@ -124,7 +121,6 @@ exports.coalesce=coalesce;
 exports.append=append;
 exports.prepend=prepend;
 exports.entries=entries;
-exports.exists=exists;
 exports.nonempty=nonempty;
 exports.isOfType=isOfType;
 exports.isOfTypes=isOfTypes;

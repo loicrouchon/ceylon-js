@@ -1,32 +1,22 @@
 (function(define) {
     define(function(require, exports, module) {
 
-var clang = require('ceylon/language/0.1/ceylon.language');
+var clang = require('./types');
 
-function String$(value,size) {
-    var that = new String$.$$;
-    that.value = value;
-    that.codePoints = size;
-    return that;
-}
-clang.initType(String$, 'ceylon.language.String', clang.Object, clang.List, clang.Comparable,
-    clang.Ranged, clang.FixedSized, clang.Summable, clang.Castable, clang.Cloneable);
-clang.inheritProto(String$, clang.Object, '$Object$');
-exports.String=String$;
-var $String = String$.$$;
+var $String = clang.String.$$;
 $String.prototype.getString = function() { return this }
 $String.prototype.toString = function() { return this.value }
 $String.prototype.plus = function(other) {
     var size = this.codePoints + other.codePoints;
-    return String$(this.value+other.value, isNaN(size)?undefined:size);
+    return clang.String(this.value+other.value, isNaN(size)?undefined:size);
 }
 $String.prototype.equals = function(other) { return clang.Boolean(other && other.value===this.value) }
 $String.prototype.compare = function(other) {
     var cmp = this.value.localeCompare(other.value);
     return cmp===0 ? clang.getEqual() : (cmp<0 ? clang.getSmaller():clang.getLarger());
 }
-$String.prototype.getUppercased = function() { return String$(this.value.toUpperCase()) }
-$String.prototype.getLowercased = function() { return String$(this.value.toLowerCase()) }
+$String.prototype.getUppercased = function() { return clang.String(this.value.toUpperCase()) }
+$String.prototype.getLowercased = function() { return clang.String(this.value.toLowerCase()) }
 $String.prototype.getSize = function() {
     if (this.codePoints===undefined) {
         this.codePoints = countCodepoints(this.value);
@@ -43,7 +33,7 @@ $String.prototype.span = function(from, to) {
 		return this.item(from).getString();
     } else if (toIndex > fromIndex) {
 		//TODO optimize this
-		var s = String$("");
+		var s = clang.String("");
         for (var i = fromIndex; i <= toIndex; i++) {
 			s = s.plus(this.item(clang.Integer(i)).getString());
         }
@@ -51,7 +41,7 @@ $String.prototype.span = function(from, to) {
     } else {
         //Negative span, reverse seq returned
         //TODO optimize
-        var s = String$("");
+        var s = clang.String("");
         for (var i = fromIndex; i >= toIndex; i--) {
             var x = this.item(clang.Integer(i));
 			if (x !== null) s = s.plus(x.getString());
@@ -61,7 +51,7 @@ $String.prototype.span = function(from, to) {
 }
 $String.prototype.segment = function(from, len) {
 	//TODO optimize
-    var s = String$("");
+    var s = clang.String("");
     if (len.compare(clang.Integer(0)) === clang.getLarger()) {
         var stop = from.plus(len).value;
         for (var i=from.value; i < stop; i++) {
@@ -96,7 +86,7 @@ $String.prototype.item = function(index) {
         if ((this.value.charCodeAt(i)&0xfc00) === 0xd800) {++i}
         if (++i >= this.value.length) {return null}
     }
-    return Character(codepointFromString(this.value, i));
+    return clang.Character(codepointFromString(this.value, i));
 }
 $String.prototype.getTrimmed = function() {
     // make use of the fact that all WS characters are single UTF-16 code units
@@ -108,7 +98,7 @@ $String.prototype.getTrimmed = function() {
         ++to;
     }
     if (from===0 && to===this.value.length) {return this}
-    var result = String$(this.value.substring(from, to));
+    var result = clang.String(this.value.substring(from, to));
     if (this.codePoints !== undefined) {
         result.codePoints = this.codePoints - from - this.value.length + to;
     }
@@ -125,7 +115,7 @@ $String.prototype.initial = function(length) {
         this.codePoints = count;
         return this;
     }
-    return String$(this.value.substr(0, i), count);
+    return clang.String(this.value.substr(0, i), count);
 }
 $String.prototype.terminal = function(length) {
     if (length.value >= this.codePoints) {return this}
@@ -138,7 +128,7 @@ $String.prototype.terminal = function(length) {
         this.codePoints = count;
         return this;
     }
-    return String$(this.value.substr(i), count);
+    return clang.String(this.value.substr(i), count);
 }
 $String.prototype.getHash = function() {
     if (this._hash === undefined) {
@@ -189,7 +179,7 @@ $String.prototype.getNormalized = function() {
     var i1 = 0;
     while (i1 < this.value.length) {
         while (this.value.charCodeAt(i1) in $WS) {
-            if (++i1 >= this.value.length) {return String$(result)}
+            if (++i1 >= this.value.length) {return clang.String(result)}
         }
         var i2 = i1;
         var cc = this.value.charCodeAt(i2);
@@ -207,7 +197,7 @@ $String.prototype.getNormalized = function() {
         result += this.value.substring(i1, i2);
         i1 = i2+1;
     }
-    return String$(result, len);
+    return clang.String(result, len);
 }
 $String.prototype.firstOccurrence = function(sub) {
     if (sub.value.length == 0) {return clang.Integer(0)}
@@ -268,7 +258,7 @@ $String.prototype.getKeys = function() {
     return this.getSize().value > 0 ? clang.Range(clang.Integer(0), this.getSize().getPredecessor()) : $empty;
 }
 $String.prototype.join = function(strings) {
-    if (strings===undefined || strings.value.length===0) {return String$("", 0)}
+    if (strings===undefined || strings.value.length===0) {return clang.String("", 0)}
     if (this.codePoints === undefined) {this.codePoints = countCodepoints(this.value)}
     var str = strings.value[0];
     var result = str.value;
@@ -279,7 +269,7 @@ $String.prototype.join = function(strings) {
         result += str.value;
         len += this.codePoints + str.codePoints;
     }
-    return String$(result, isNaN(len)?undefined:len);
+    return clang.String(result, isNaN(len)?undefined:len);
 }
 $String.prototype.split = function(seps, discard) {
     var sepChars = $WS;
@@ -303,15 +293,15 @@ $String.prototype.split = function(seps, discard) {
         ++count;
         if (cp in sepChars) {
             if (tokenBegin != j) {
-                tokens.push(String$(this.value.substring(tokenBegin, j), count-tokenBeginCount-1))
+                tokens.push(clang.String(this.value.substring(tokenBegin, j), count-tokenBeginCount-1))
             }
-            if (!discard) {tokens.push(String$(this.value.substring(j, i), 1))}
+            if (!discard) {tokens.push(clang.String(this.value.substring(j, i), 1))}
             tokenBegin = i;
             tokenBeginCount = count;
         }
     }
     if (tokenBegin != i) {
-        tokens.push(String$(this.value.substring(tokenBegin, i), count-tokenBeginCount))
+        tokens.push(clang.String(this.value.substring(tokenBegin, i), count-tokenBeginCount))
     }
     this.codePoints = count;
     return clang.ArraySequence(tokens);
@@ -326,10 +316,10 @@ $String.prototype.getReversed = function() {
             result += this.value.substr(--i, 2);
         }
     }
-    return String$(result);
+    return clang.String(result);
 }
 $String.prototype.replace = function(sub, repl) {
-    return String$(this.value.replace(new RegExp(sub.value, 'g'), repl.value));
+    return clang.String(this.value.replace(new RegExp(sub.value, 'g'), repl.value));
 }
 $String.prototype.repeat = function(times) {
     var sb = clang.StringBuilder();
@@ -352,9 +342,9 @@ $StringIterator.prototype.next = function() {
     if (this.index >= this.string.length) { return clang.getExhausted() }
     var first = this.string.charCodeAt(this.index++);
     if ((first&0xfc00) !== 0xd800 || this.index >= this.string.length) {
-        return Character(first);
+        return clang.Character(first);
     }
-    return Character((first<<10) + this.string.charCodeAt(this.index++) - 0x35fdc00);
+    return clang.Character((first<<10) + this.string.charCodeAt(this.index++) - 0x35fdc00);
 }
 
 function countCodepoints(str) {
@@ -378,16 +368,8 @@ function codepointFromString(str, index) {
     return isNaN(second) ? first : ((first<<10) + second - 0x35fdc00);
 }
 
-function Character(value) {
-    var that = new Character.$$;
-    that.value = value;
-    return that;
-}
-clang.initType(Character, 'ceylon.language.Character', clang.Object, clang.Comparable);
-clang.inheritProto(Character, clang.Object, '$Object$');
-exports.Character=Character;
-var $Character = Character.$$;
-$Character.prototype.getString = function() { return String$(codepointToString(this.value)) }
+var $Character = clang.Character.$$;
+$Character.prototype.getString = function() { return clang.String(codepointToString(this.value)) }
 $Character.prototype.equals = function(other) {
     return clang.Boolean(other.constructor===$Character && other.value===this.value);
 }
@@ -398,15 +380,15 @@ $Character.prototype.compare = function(other) {
 }
 $Character.prototype.getUppercased = function() {
     var ucstr = codepointToString(this.value).toUpperCase();
-    return Character(codepointFromString(ucstr, 0));
+    return clang.Character(codepointFromString(ucstr, 0));
 }
 $Character.prototype.getLowercased = function() {
     var lcstr = codepointToString(this.value).toLowerCase();
-    return Character(codepointFromString(lcstr, 0));
+    return clang.Character(codepointFromString(lcstr, 0));
 }
 $Character.prototype.getTitlecased = function() {
     var tc = $toTitlecase[this.value];
-    return tc===undefined ? this.getUppercased() : Character(tc);
+    return tc===undefined ? this.getUppercased() : clang.Character(tc);
 }
 var $WS={0x9:true, 0xa:true, 0xb:true, 0xc:true, 0xd:true, 0x20:true, 0x85:true, 0xa0:true,
     0x1680:true, 0x180e:true, 0x2028:true, 0x2029:true, 0x202f:true, 0x205f:true, 0x3000:true}
@@ -466,13 +448,13 @@ $Character.prototype.getLetter = function() {
 }
 $Character.prototype.getSuccessor = function() {
     var succ = this.value+1;
-    if ((succ&0xf800) === 0xd800) {return Character(0xe000)}
-    return Character((succ<=0x10ffff) ? succ:0);
+    if ((succ&0xf800) === 0xd800) {return clang.Character(0xe000)}
+    return clang.Character((succ<=0x10ffff) ? succ:0);
 }
 $Character.prototype.getPredecessor = function() {
     var succ = this.value-1;
-    if ((succ&0xf800) === 0xd800) {return Character(0xd7ff)}
-    return Character((succ>=0) ? succ:0x10ffff);
+    if ((succ&0xf800) === 0xd800) {return clang.Character(0xd7ff)}
+    return clang.Character((succ>=0) ? succ:0x10ffff);
 }
 
     });
