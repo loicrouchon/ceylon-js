@@ -1,7 +1,7 @@
 (function(define) {
     define(function(require, exports, module) {
 
-var clang = require('./ceylon.language');
+var clang = require('./types');
 
 //receives ArraySequence, returns element
 function min(seq) {
